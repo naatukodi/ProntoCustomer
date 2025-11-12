@@ -1,12 +1,13 @@
 export const environment = {
   production: true,
   firebase: {
-  apiKey: "AIzaSyAQcvVU4F-Pid__FAGgGSUH360EjaAOqNQ",
-  authDomain: "prontofirebase.firebaseapp.com",
-  projectId: "prontofirebase",
-  storageBucket: "prontofirebase.firebasestorage.app",
-  messagingSenderId: "1045526546178",
-  appId: "1:1045526546178:web:534e7bfb27b3fa5e5d641b"
+  apiKey: "AIzaSyCyBBWCrDLIKQcl_jnsAEOJ0R7bNlYvhEE",
+  authDomain: "prontocustomerui.firebaseapp.com",
+  projectId: "prontocustomerui",
+  storageBucket: "prontocustomerui.firebasestorage.app",
+  messagingSenderId: "708254245683",
+  appId: "1:708254245683:web:c260eb4951c95f7c7b5446",
+  measurementId: "G-8JDL0QJZTS"
   },
   apiBaseUrl: 'https://prontobackend-bhdnbec2fvd3ecfk.eastus2-01.azurewebsites.net/api/'
 };
