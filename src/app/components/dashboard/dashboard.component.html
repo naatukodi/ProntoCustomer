@@ -1,140 +1,203 @@
-<div class="header-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
-  <nav class="navigation-links"></nav>
-  <div class="user-info" *ngIf="currentUser">
-    Welcome, {{ currentUser.name }}
+<div class="dashboard-container">
+  
+  <!-- Header -->
+  <div class="header-bar">
+    <nav class="navigation-links">
+      <h2>Valuations Dashboard</h2>
+    </nav>
+    <div class="user-info" *ngIf="currentUser">
+      👤 Welcome, <strong>{{ currentUser.name }}</strong>
+    </div>
   </div>
-</div>
 
-<!-- Date filter -->
-<mat-form-field appearance="fill" style="margin-bottom: 12px;">
-  <mat-label>Filter by Created Date</mat-label>
-  <input matInput [matDatepicker]="picker" [(ngModel)]="filterDate" placeholder="Choose a date" (dateChange)="onDateFilterChange()">
-  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-  <mat-datepicker #picker></mat-datepicker>
-</mat-form-field>
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filter-row">
+      <div class="date-filter-wrapper">
+        <mat-form-field appearance="outline" class="date-input">
+          <mat-label>Filter by Created Date</mat-label>
+          <input 
+            matInput 
+            [matDatepicker]="picker" 
+            [(ngModel)]="filterDate" 
+            placeholder="Choose a date"
+            (dateChange)="onDateFilterChange()">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
 
-<div class="step-filter">
-  <button
-    mat-button
-    [class.active]="selectedStep === ''"
-    (click)="selectedStep=''; applyFilter()">
-    All ({{ claims.length }})
-  </button>
+    <!-- Only ALL Filter Button -->
+    <div class="all-filter">
+      <button
+        [class.active]="selectedStatus === ''"
+        (click)="setStatusFilter('')">
+        📊 ALL <span *ngIf="claims.length">({{ claims.length }})</span>
+      </button>
+    </div>
 
-  <ng-container *ngFor="let s of steps">
-    <button
-      mat-button
-      [class.active]="selectedStep === s"
-      [disabled]="(stepCounts[s] || 0) === 0"
-      (click)="selectedStep=s; applyFilter()">
-      {{ s }} ({{ stepCounts[s] || 0 }})
-    </button>
+    <!-- Status Filter Buttons -->
+    <div class="status-filter">
+      <button 
+        *ngFor="let status of statuses" 
+        [class.active]="selectedStatus === status" 
+        (click)="setStatusFilter(status)">
+        {{ status }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    ⏳ Loading valuations…
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading && error" class="error">
+    ❌ {{ error }}
+  </div>
+
+  <!-- Main Content - TABLE -->
+  <ng-container *ngIf="!loading && !error">
+    
+    <!-- Empty State -->
+    <div *ngIf="filteredClaims.length === 0" class="empty">
+      📭 No valuations to display.
+    </div>
+
+    <!-- Table Wrapper -->
+    <div *ngIf="filteredClaims.length > 0" class="table-wrapper">
+      <table 
+        mat-table 
+        [dataSource]="filteredClaims" 
+        class="dashboard-table">
+
+        <!-- Vehicle Number -->
+        <ng-container matColumnDef="vehicleNumber">
+          <th mat-header-cell *matHeaderCellDef>🚗 Vehicle No.</th>
+          <td mat-cell *matCellDef="let v">
+            <strong>{{ v.vehicleNumber }}</strong>
+          </td>
+        </ng-container>
+
+        <!-- Assigned To -->
+        <ng-container matColumnDef="assignedTo">
+          <th mat-header-cell *matHeaderCellDef>👤 Assigned To</th>
+          <td mat-cell *matCellDef="let v">
+            {{ v.assignedTo }}
+          </td>
+        </ng-container>
+
+        <!-- Phone -->
+        <ng-container matColumnDef="phone">
+          <th mat-header-cell *matHeaderCellDef>📱 Phone</th>
+          <td mat-cell *matCellDef="let v">
+            {{ v.assignedToPhoneNumber }}
+          </td>
+        </ng-container>
+
+        <!-- Location -->
+        <ng-container matColumnDef="location">
+          <th mat-header-cell *matHeaderCellDef>📍 Location</th>
+          <td mat-cell *matCellDef="let v">
+            {{ v.location }}
+          </td>
+        </ng-container>
+
+        <!-- Created At -->
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef>📅 Created</th>
+          <td mat-cell *matCellDef="let v">
+            {{ v.createdAt | date:'medium' }}
+          </td>
+        </ng-container>
+
+        <!-- Age -->
+        <ng-container matColumnDef="age">
+          <th mat-header-cell *matHeaderCellDef>⏱️ Days Old</th>
+          <td mat-cell *matCellDef="let v"
+              [ngClass]="{
+                'age-1': ageInDays(v) === 1,
+                'age-2': ageInDays(v) === 2,
+                'age-3plus': ageInDays(v) >= 3
+              }">
+            <strong>{{ ageInDays(v) }}</strong>
+          </td>
+        </ng-container>
+
+        <!-- Red Flag -->
+        <ng-container matColumnDef="redFlag">
+          <th mat-header-cell *matHeaderCellDef>🚩 Flag</th>
+          <td mat-cell *matCellDef="let v">
+            <span class="red" *ngIf="v.redFlag">⚠️ FLAG</span>
+            <span *ngIf="!v.redFlag" style="color: var(--gray-300);">-</span>
+          </td>
+        </ng-container>
+
+        <!-- Applicant -->
+        <ng-container matColumnDef="applicant">
+          <th mat-header-cell *matHeaderCellDef>👥 Applicant</th>
+          <td mat-cell *matCellDef="let v">
+            {{ v.applicantName }}<br>
+            <small>{{ v.applicantContact }}</small>
+          </td>
+        </ng-container>
+
+        <!-- Valuation Info -->
+        <ng-container matColumnDef="info">
+          <th mat-header-cell *matHeaderCellDef>📋 Valuation</th>
+          <td mat-cell *matCellDef="let v">
+            <span class="status-badge info">{{ v.valuationType }}</span><br>
+            <small>{{ v.name }}</small>
+          </td>
+        </ng-container>
+
+        <!-- Current Step -->
+        <ng-container matColumnDef="currentStep">
+          <th mat-header-cell *matHeaderCellDef>👣 Current Step</th>
+          <td mat-cell *matCellDef="let v">
+            <span class="status-badge success">
+              {{ ['Stakeholder', 'BackEnd', 'AVO', 'QC', 'FinalReport'][getStepIndex(v)] }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Status -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>✓ Status</th>
+          <td mat-cell *matCellDef="let v">
+            <span [ngClass]="{
+              'status-badge success': v.status === 'Completed',
+              'status-badge warning': v.status === 'In Progress',
+              'status-badge error': v.status === 'Rejected'
+            }">
+              {{ v.status }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Action -->
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>⚡ Action</th>
+          <td mat-cell *matCellDef="let v" class="action-cell">
+            <button 
+              mat-raised-button 
+              color="primary" 
+              (click)="openCase(v); $event.stopPropagation()"
+              class="action-button">
+              🔓 OPEN
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Header and Rows -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let v; columns: displayedColumns;"></tr>
+
+      </table>
+    </div>
+
   </ng-container>
+
 </div>
-
-<div *ngIf="loading" class="loading">Loading valuations…</div>
-<div *ngIf="!loading && error" class="error">{{ error }}</div>
-
-<ng-container *ngIf="!loading && !error">
-  <div *ngIf="filteredClaims.length === 0" class="empty">No valuations to display.</div>
-
-  <table *ngIf="filteredClaims.length > 0"
-         mat-table
-         [dataSource]="filteredClaims"
-         class="dashboard-table">
-
-    <!-- Vehicle Number -->
-    <ng-container matColumnDef="vehicleNumber">
-      <th mat-header-cell *matHeaderCellDef>VEHICLE NO.</th>
-      <td mat-cell *matCellDef="let v">{{ v.vehicleNumber }}</td>
-    </ng-container>
-
-    <!-- Assigned To -->
-    <ng-container matColumnDef="assignedTo">
-      <th mat-header-cell *matHeaderCellDef>ASSIGNED TO</th>
-      <td mat-cell *matCellDef="let v">{{ v.assignedTo }}</td>
-    </ng-container>
-
-    <!-- Phone -->
-    <ng-container matColumnDef="phone">
-      <th mat-header-cell *matHeaderCellDef>PHONE</th>
-      <td mat-cell *matCellDef="let v">{{ v.assignedToPhoneNumber }}</td>
-    </ng-container>
-
-    <!-- Location -->
-    <ng-container matColumnDef="location">
-      <th mat-header-cell *matHeaderCellDef>LOCATION</th>
-      <td mat-cell *matCellDef="let v">{{ v.location }}</td>
-    </ng-container>
-
-    <!-- Created At -->
-    <ng-container matColumnDef="createdAt">
-      <th mat-header-cell *matHeaderCellDef>CREATED</th>
-      <td mat-cell *matCellDef="let v">{{ v.createdAt | date:'short' }}</td>
-    </ng-container>
-
-    <!-- Age -->
-    <ng-container matColumnDef="age">
-      <th mat-header-cell *matHeaderCellDef>DAYS OLD</th>
-      <td mat-cell *matCellDef="let v"
-          [ngClass]="{
-            'age-1': ageInDays(v) === 1,
-            'age-2': ageInDays(v) === 2,
-            'age-3plus': ageInDays(v) >= 3
-          }">
-        {{ ageInDays(v) }}
-      </td>
-    </ng-container>
-
-    <!-- Red Flag -->
-    <ng-container matColumnDef="redFlag">
-      <th mat-header-cell *matHeaderCellDef>FLAG</th>
-      <td mat-cell *matCellDef="let v">
-        <span [class.red]="v.redFlag">{{ v.redFlag ? '⚑' : '' }}</span>
-      </td>
-    </ng-container>
-
-    <!-- Applicant -->
-    <ng-container matColumnDef="applicant">
-      <th mat-header-cell *matHeaderCellDef>APPLICANT</th>
-      <td mat-cell *matCellDef="let v">
-        {{ v.applicantName }} ({{ v.applicantContact }})
-      </td>
-    </ng-container>
-
-    <!-- Valuation Info -->
-    <ng-container matColumnDef="info">
-      <th mat-header-cell *matHeaderCellDef>VALUATION</th>
-      <td mat-cell *matCellDef="let v">
-        {{ v.valuationType }} — {{ v.name }}
-      </td>
-    </ng-container>
-
-    <!-- Current Step -->
-    <ng-container matColumnDef="currentStep">
-      <th mat-header-cell *matHeaderCellDef>CURRENT STEP</th>
-      <td mat-cell *matCellDef="let v">{{ steps[getStepIndex(v)] }}</td>
-    </ng-container>
-
-    <!-- Status -->
-    <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef>STATUS</th>
-      <td mat-cell *matCellDef="let v">{{ v.status }}</td>
-    </ng-container>
-
-    <!-- ✅ ACTION BUTTON COLUMN -->
-    <ng-container matColumnDef="action">
-      <th mat-header-cell *matHeaderCellDef>ACTION</th>
-      <td mat-cell *matCellDef="let v">
-        <button mat-raised-button color="primary" (click)="openCase(v); $event.stopPropagation()">
-          ENTER
-        </button>
-      </td>
-    </ng-container>
-
-    <!-- ✅ REQUIRED ROW DEFINITIONS -->
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let v; columns: displayedColumns;"></tr>
-
-  </table>
-</ng-container>

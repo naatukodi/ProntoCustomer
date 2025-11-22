@@ -22,7 +22,7 @@ import { RoleGuard }      from './auth/role.guard';
 import { AddUserComponent } from './components/users/add-user/add-user.component';
 import { EditUserComponent } from './components/users/edit-user/edit-user.component';
 import { ReportCompletionUpdateComponent } from './components/Report/final-report-completion/report-completion-update.component';
-
+import { LeadHistoryComponent } from './components/valution/lead-history/lead-history.component'
 export const routes: Routes = [
   {
     path: 'login',
@@ -35,6 +35,7 @@ export const routes: Routes = [
     children: [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard, RoleGuard], data: { permission: 'CanViewDashboard' } },
+  { path: 'valuation/:valuationId/lead-history', component: LeadHistoryComponent, canActivate: [AuthGuard, RoleGuard], data: { permission: 'CanViewDashboard' } },
   // 2) Stakeholder routes
   { path: 'stakeholder', component: StakeholderNewComponent, canActivate: [AuthGuard, RoleGuard], data: { permission: 'CanCreateStakeholder' } },
   { path: 'valuation/:valuationId/stakeholder/update', component: StakeholderUpdateComponent, canActivate: [AuthGuard, RoleGuard], data: { permission: 'CanEditStakeholder' } },

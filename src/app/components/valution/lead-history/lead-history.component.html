@@ -1,0 +1,43 @@
+<div class="lead-history-page">
+  <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
+
+  <div *ngIf="loading" class="loading">
+    ⏳ Loading lead history…
+  </div>
+
+  <div *ngIf="!loading && error" class="error">
+    ❌ {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error" class="lead-history-wrapper">
+    <div class="lead-history-header">
+      <h2>Lead History</h2>
+      <div class="lead-basic-info">
+        <span class="value"><strong>Vehicle:</strong> {{ vehicleNumber }}</span>
+        <span class="value"><strong>Applicant:</strong> {{ lead.customerName }} ({{ lead.customerPhone }})</span>
+        <span class="value"><strong>Type:</strong> {{ valuationType }}</span>
+      </div>
+    </div>
+
+    <div class="lead-history-table-container">
+      <table class="lead-history-table">
+        <thead>
+          <tr>
+            <th>S.No.</th>
+            <th>Date & Time</th>
+            <th>Action</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of lead.history; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ entry.date | date:'dd/MM/yyyy hh:mm a' }}</td>
+            <td>{{ entry.action }}</td>
+            <td>{{ entry.remarks }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
