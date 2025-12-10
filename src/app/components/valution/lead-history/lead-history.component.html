@@ -1,43 +1,133 @@
-<div class="lead-history-page">
-  <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
+<div class="lead-history-container">
+  <!-- Header -->
+  <div class="header-actions">
+    <button (click)="goBack()">← Back to Dashboard</button>
+  </div>
 
+  <h1>Lead History</h1>
+
+  <!-- Error Message -->
+  <div *ngIf="error && !loading" class="error-message">
+    {{ error }}
+  </div>
+
+  <!-- Loading State -->
   <div *ngIf="loading" class="loading">
-    ⏳ Loading lead history…
+    Loading lead information...
   </div>
 
-  <div *ngIf="!loading && error" class="error">
-    ❌ {{ error }}
-  </div>
-
-  <div *ngIf="!loading && !error" class="lead-history-wrapper">
-    <div class="lead-history-header">
-      <h2>Lead History</h2>
-      <div class="lead-basic-info">
-        <span class="value"><strong>Vehicle:</strong> {{ vehicleNumber }}</span>
-        <span class="value"><strong>Applicant:</strong> {{ lead.customerName }} ({{ lead.customerPhone }})</span>
-        <span class="value"><strong>Type:</strong> {{ valuationType }}</span>
+  <!-- Main Content -->
+  <div *ngIf="!loading" class="lead-details-wrapper">
+    <!-- CUSTOMER INFO -->
+    <div class="info-section">
+      <h3>CUSTOMER INFO</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">NAME:</div>
+          <div class="value">{{ leadDetails.customerName || '-' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">PHONE:</div>
+          <div class="value">{{ leadDetails.customerPhone || '-' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">EMAIL:</div>
+          <div class="value">{{ leadDetails.customerEmail || '-' }}</div>
+        </div>
       </div>
     </div>
 
-    <div class="lead-history-table-container">
-      <table class="lead-history-table">
-        <thead>
-          <tr>
-            <th>S.No.</th>
-            <th>Date & Time</th>
-            <th>Action</th>
-            <th>Remarks</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let entry of lead.history; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>{{ entry.date | date:'dd/MM/yyyy hh:mm a' }}</td>
-            <td>{{ entry.action }}</td>
-            <td>{{ entry.remarks }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- VEHICLE INFO -->
+    <div class="info-section">
+      <h3>VEHICLE INFO</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">VEHICLE NUMBER:</div>
+          <div class="value">{{ leadDetails.vehicleNumber || '-' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">TYPE:</div>
+          <!-- ✅ NOW SHOWS: four-wheeler (from URL parameter) -->
+          <div class="value">{{ leadDetails.vehicleType || '-' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">MODEL:</div>
+          <div class="value">{{ leadDetails.vehicleModel || '-' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENT INFO -->
+    <div class="info-section">
+      <h3>CLIENT INFO</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">CLIENT NAME:</div>
+          <div class="value">{{ leadDetails.clientName || '-' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">LOCATION:</div>
+          <div class="value">{{ leadDetails.clientLocation || '-' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXECUTIVE INFO -->
+    <div class="info-section">
+      <h3>EXECUTIVE INFO</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">EXECUTIVE ID:</div>
+          <div class="value">{{ leadDetails.executiveId || '-' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">NAME:</div>
+          <div class="value">{{ leadDetails.executiveName || '-' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">PHONE:</div>
+          <div class="value">{{ leadDetails.executivePhone || '-' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TABLE SECTION -->
+  <div *ngIf="!loading" class="history-table-section">
+    <h3>HISTORY</h3>
+
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>S.NO.</th>
+          <th>DATE & TIME</th>
+          <th>ACTION</th>
+          <th>REMARKS</th>
+          <th>STATUS CHANGE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- ✅ USE CORRECT FIELD NAMES -->
+        <tr *ngFor="let entry of historyEntries; let i = index">
+          <td>{{ i + 1 }}</td>
+          <!-- ✅ CHANGE: entry.dateTime → entry.firstDateTime -->
+          <td>{{ formatDateTime(entry.firstDateTime) }}</td>
+          <td>{{ entry.action || '-' }}</td>
+          <td>{{ entry.remarks || '-' }}</td>
+          <td>
+            <!-- ✅ CHANGE: statusFrom/statusTo → previousStatus/currentStatus -->
+            <span *ngIf="entry.statusChange && entry.previousStatus && entry.currentStatus" class="status-change">
+              {{ entry.previousStatus || '-' }} → {{ entry.currentStatus || '-' }}
+            </span>
+            <span *ngIf="!entry.statusChange || !entry.previousStatus || !entry.currentStatus">-</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- No data state -->
+    <div *ngIf="historyEntries.length === 0" class="loading">
+      No history entries found
     </div>
   </div>
 </div>
