@@ -1,79 +1,87 @@
 <div class="dashboard-container">
   
-  <!-- Header -->
   <div class="header-bar">
     <nav class="navigation-links">
       <h2>Valuations Dashboard</h2>
     </nav>
+
     <div class="user-info" *ngIf="currentUser">
       👤 Welcome, <strong>{{ currentUser.name }}</strong>
     </div>
   </div>
 
-  <!-- Filters Section -->
   <div class="filters-section">
+
     <div class="filter-row">
-      <div class="date-filter-wrapper">
-        <mat-form-field appearance="outline" class="date-input">
-          <mat-label>Filter by Created Date</mat-label>
-          <input 
-            matInput 
-            [matDatepicker]="picker" 
-            [(ngModel)]="filterDate" 
-            placeholder="Choose a date"
-            (dateChange)="onDateFilterChange()">
-          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="date-input">
+        <mat-label>Filter by Month</mat-label>
+        <input matInput [matDatepicker]="monthPicker" placeholder="Select Month" readonly>
+        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+        <mat-datepicker #monthPicker 
+                        startView="year" 
+                        (monthSelected)="onMonthSelected($event, monthPicker)"
+                        panelClass="example-month-picker">
+        </mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="date-input">
+        <mat-label>Filter by Date</mat-label>
+        <input matInput 
+               [matDatepicker]="datePicker" 
+               placeholder="Select Date"
+               (dateChange)="onDateSelected($event.value)">
+        <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+        <mat-datepicker #datePicker></mat-datepicker>
+      </mat-form-field>
+
+      <div class="active-filter-display" *ngIf="displayDateLabel">
+        <span class="filter-tag">
+          📅 {{ displayDateLabel }}
+          <button mat-icon-button class="close-btn" (click)="displayDateLabel = ''; filterStartDate = null; filterEndDate = null; filterMode = null; applyFilter()">
+            ✖
+          </button>
+        </span>
       </div>
+
     </div>
 
-    <!-- Only ALL Filter Button -->
-    <div class="all-filter">
-      <button
+    <div class="status-actions-row">
+      <button class="filter-chip"
         [class.active]="selectedStatus === ''"
         (click)="setStatusFilter('')">
         📊 ALL <span *ngIf="claims.length">({{ claims.length }})</span>
       </button>
-    </div>
 
-    <!-- Status Filter Buttons -->
-    <div class="status-filter">
-      <button 
-        *ngFor="let status of statuses" 
-        [class.active]="selectedStatus === status" 
+      <button class="filter-chip"
+        *ngFor="let status of statuses"
+        [class.active]="selectedStatus === status"
         (click)="setStatusFilter(status)">
-        {{ status }}
+        {{ status }} ({{ getCount(status) }})
       </button>
     </div>
+
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="loading">
-    ⏳ Loading valuations…
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>⏳ Loading valuations…</p>
   </div>
 
-  <!-- Error State -->
-  <div *ngIf="!loading && error" class="error">
+  <div *ngIf="!loading && error" class="error-state">
     ❌ {{ error }}
   </div>
 
-  <!-- Main Content - TABLE -->
   <ng-container *ngIf="!loading && !error">
-    
-    <!-- Empty State -->
-    <div *ngIf="filteredClaims.length === 0" class="empty">
-      📭 No valuations to display.
+
+    <div *ngIf="filteredClaims.length === 0" class="empty-state">
+      <h3>📭 No valuations found.</h3>
+      <p>Try adjusting your filters or search criteria.</p>
     </div>
 
-    <!-- Table Wrapper -->
-    <div *ngIf="filteredClaims.length > 0" class="table-wrapper">
-      <table 
-        mat-table 
-        [dataSource]="filteredClaims" 
-        class="dashboard-table">
+    <div *ngIf="filteredClaims.length > 0" class="table-container">
+      <table mat-table [dataSource]="filteredClaims" class="dashboard-table">
 
-        <!-- Vehicle Number -->
         <ng-container matColumnDef="vehicleNumber">
           <th mat-header-cell *matHeaderCellDef>🚗 Vehicle No.</th>
           <td mat-cell *matCellDef="let v">
@@ -81,23 +89,21 @@
           </td>
         </ng-container>
 
-        <!-- Assigned To -->
         <ng-container matColumnDef="assignedTo">
           <th mat-header-cell *matHeaderCellDef>👤 Assigned To</th>
           <td mat-cell *matCellDef="let v">
-            {{ v.assignedTo }}
+            <span *ngIf="v.assignedTo">{{ v.assignedTo }}</span>
+            <span *ngIf="!v.assignedTo" class="text-muted">Unassigned</span>
           </td>
         </ng-container>
 
-        <!-- Phone -->
         <ng-container matColumnDef="phone">
           <th mat-header-cell *matHeaderCellDef>📱 Phone</th>
           <td mat-cell *matCellDef="let v">
-            {{ v.assignedToPhoneNumber }}
+            {{ v.assignedToPhoneNumber || '-' }}
           </td>
         </ng-container>
 
-        <!-- Location -->
         <ng-container matColumnDef="location">
           <th mat-header-cell *matHeaderCellDef>📍 Location</th>
           <td mat-cell *matCellDef="let v">
@@ -105,95 +111,90 @@
           </td>
         </ng-container>
 
-        <!-- Created At -->
         <ng-container matColumnDef="createdAt">
           <th mat-header-cell *matHeaderCellDef>📅 Created</th>
           <td mat-cell *matCellDef="let v">
-            {{ v.createdAt | date:'medium' }}
+            {{ v.createdAt | date:'mediumDate' }}<br>
+            <small class="text-muted">{{ v.createdAt | date:'shortTime' }}</small>
           </td>
         </ng-container>
 
-        <!-- Age -->
         <ng-container matColumnDef="age">
-          <th mat-header-cell *matHeaderCellDef>⏱️ Days Old</th>
+          <th mat-header-cell *matHeaderCellDef>⏱️ Age</th>
           <td mat-cell *matCellDef="let v"
               [ngClass]="{
-                'age-1': ageInDays(v) === 1,
-                'age-2': ageInDays(v) === 2,
-                'age-3plus': ageInDays(v) >= 3
+                'age-fresh': ageInDays(v) <= 1,
+                'age-warning': ageInDays(v) === 2,
+                'age-critical': ageInDays(v) >= 3
               }">
-            <strong>{{ ageInDays(v) }}</strong>
+            <strong>{{ ageInDays(v) }} days</strong>
           </td>
         </ng-container>
 
-        <!-- Red Flag -->
         <ng-container matColumnDef="redFlag">
           <th mat-header-cell *matHeaderCellDef>🚩 Flag</th>
           <td mat-cell *matCellDef="let v">
-            <span class="red" *ngIf="v.redFlag">⚠️ FLAG</span>
-            <span *ngIf="!v.redFlag" style="color: var(--gray-300);">-</span>
+            <span class="flag-indicator" *ngIf="v.redFlag" title="High Priority">⚠️</span>
+            <span *ngIf="!v.redFlag">-</span>
           </td>
         </ng-container>
 
-        <!-- Applicant -->
         <ng-container matColumnDef="applicant">
           <th mat-header-cell *matHeaderCellDef>👥 Applicant</th>
           <td mat-cell *matCellDef="let v">
-            {{ v.applicantName }}<br>
-            <small>{{ v.applicantContact }}</small>
+            <div class="cell-stacked">
+              <span class="primary-text">{{ v.applicantName }}</span>
+              <span class="secondary-text">{{ v.applicantContact }}</span>
+            </div>
           </td>
         </ng-container>
 
-        <!-- Valuation Info -->
         <ng-container matColumnDef="info">
-          <th mat-header-cell *matHeaderCellDef>📋 Valuation</th>
+          <th mat-header-cell *matHeaderCellDef>📋 Type</th>
           <td mat-cell *matCellDef="let v">
-            <span class="status-badge info">{{ v.valuationType }}</span><br>
-            <small>{{ v.name }}</small>
+            <span class="type-badge">{{ v.valuationType }}</span>
           </td>
         </ng-container>
 
-        <!-- Current Step -->
         <ng-container matColumnDef="currentStep">
-          <th mat-header-cell *matHeaderCellDef>👣 Current Step</th>
+          <th mat-header-cell *matHeaderCellDef>👣 Step</th>
           <td mat-cell *matCellDef="let v">
-            <span class="status-badge success">
-              {{ ['Stakeholder', 'BackEnd', 'AVO', 'QC', 'FinalReport'][getStepIndex(v)] }}
+            <span class="step-badge">
+              {{ steps[getStepIndex(v)] }}
             </span>
           </td>
         </ng-container>
 
-        <!-- Status -->
         <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>✓ Status</th>
+          <th mat-header-cell *matHeaderCellDef>Status</th>
           <td mat-cell *matCellDef="let v">
-            <span [ngClass]="{
-              'status-badge success': v.status === 'Completed',
-              'status-badge warning': v.status === 'In Progress',
-              'status-badge error': v.status === 'Rejected'
-            }">
+            <span class="status-badge" [ngClass]="getStatusClass(v.status)">
               {{ v.status }}
             </span>
           </td>
         </ng-container>
 
-        <!-- Action -->
         <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef>⚡ Action</th>
-          <td mat-cell *matCellDef="let v" class="action-cell">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let v">
+            <button
+              mat-stroked-button
+              color="primary"
+              (click)="openCase(v); $event.stopPropagation()">
+              OPEN
+            </button>
             <button 
-              mat-raised-button 
-              color="primary" 
-              (click)="openCase(v); $event.stopPropagation()"
-              class="action-button">
-              🔓 OPEN
+              mat-icon-button 
+              color="accent" 
+              (click)="navigateToCurrent(v); $event.stopPropagation()"
+              title="Go to current step">
+              ⚡
             </button>
           </td>
         </ng-container>
 
-        <!-- Header and Rows -->
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let v; columns: displayedColumns;"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover-row"></tr>
 
       </table>
     </div>
