@@ -1,34 +1,39 @@
 <div class="dashboard-container">
   
-  <!-- Header -->
+  <!-- ================= HEADER ================= -->
   <div class="header-bar">
     <nav class="navigation-links">
       <h2>Valuations Dashboard</h2>
     </nav>
+
+    <!-- Logged-in user info -->
     <div class="user-info" *ngIf="currentUser">
       👤 Welcome, <strong>{{ currentUser.name }}</strong>
     </div>
   </div>
 
-  <!-- Filters Section -->
+  <!-- ================= FILTERS SECTION ================= -->
   <div class="filters-section">
+
+    <!-- Date Filter -->
     <div class="filter-row">
       <div class="date-filter-wrapper">
         <mat-form-field appearance="outline" class="date-input">
           <mat-label>Filter by Created Date</mat-label>
           <input 
-            matInput 
-            [matDatepicker]="picker" 
-            [(ngModel)]="filterDate" 
+            matInput
+            [matDatepicker]="picker"
+            [(ngModel)]="filterDate"
             placeholder="Choose a date"
             (dateChange)="onDateFilterChange()">
+
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
       </div>
     </div>
 
-    <!-- Only ALL Filter Button -->
+    <!-- ALL Filter Button -->
     <div class="all-filter">
       <button
         [class.active]="selectedStatus === ''"
@@ -37,40 +42,41 @@
       </button>
     </div>
 
-    <!-- Status Filter Buttons -->
+    <!-- Status Filter Buttons with Count -->
     <div class="status-filter">
       <button 
-        *ngFor="let status of statuses" 
-        [class.active]="selectedStatus === status" 
+        *ngFor="let status of statuses"
+        [class.active]="selectedStatus === status"
         (click)="setStatusFilter(status)">
-        {{ status }}
+        {{ status }} ({{ getCount(status) }})
       </button>
     </div>
+
   </div>
 
-  <!-- Loading State -->
+  <!-- ================= LOADING STATE ================= -->
   <div *ngIf="loading" class="loading">
     ⏳ Loading valuations…
   </div>
 
-  <!-- Error State -->
+  <!-- ================= ERROR STATE ================= -->
   <div *ngIf="!loading && error" class="error">
     ❌ {{ error }}
   </div>
 
-  <!-- Main Content - TABLE -->
+  <!-- ================= MAIN CONTENT ================= -->
   <ng-container *ngIf="!loading && !error">
-    
+
     <!-- Empty State -->
     <div *ngIf="filteredClaims.length === 0" class="empty">
       📭 No valuations to display.
     </div>
 
-    <!-- Table Wrapper -->
+    <!-- ================= TABLE ================= -->
     <div *ngIf="filteredClaims.length > 0" class="table-wrapper">
       <table 
-        mat-table 
-        [dataSource]="filteredClaims" 
+        mat-table
+        [dataSource]="filteredClaims"
         class="dashboard-table">
 
         <!-- Vehicle Number -->
@@ -89,7 +95,7 @@
           </td>
         </ng-container>
 
-        <!-- Phone -->
+        <!-- Phone Number -->
         <ng-container matColumnDef="phone">
           <th mat-header-cell *matHeaderCellDef>📱 Phone</th>
           <td mat-cell *matCellDef="let v">
@@ -105,7 +111,7 @@
           </td>
         </ng-container>
 
-        <!-- Created At -->
+        <!-- Created Date -->
         <ng-container matColumnDef="createdAt">
           <th mat-header-cell *matHeaderCellDef>📅 Created</th>
           <td mat-cell *matCellDef="let v">
@@ -113,9 +119,9 @@
           </td>
         </ng-container>
 
-        <!-- Age -->
+        <!-- Age in Days -->
         <ng-container matColumnDef="age">
-          <th mat-header-cell *matHeaderCellDef>⏱️ Days Old</th>
+          <th mat-header-cell *matHeaderCellDef>⏱️ TAT </th>
           <td mat-cell *matCellDef="let v"
               [ngClass]="{
                 'age-1': ageInDays(v) === 1,
@@ -135,7 +141,7 @@
           </td>
         </ng-container>
 
-        <!-- Applicant -->
+        <!-- Applicant Details -->
         <ng-container matColumnDef="applicant">
           <th mat-header-cell *matHeaderCellDef>👥 Applicant</th>
           <td mat-cell *matCellDef="let v">
@@ -153,7 +159,7 @@
           </td>
         </ng-container>
 
-        <!-- Current Step -->
+        <!-- Current Workflow Step -->
         <ng-container matColumnDef="currentStep">
           <th mat-header-cell *matHeaderCellDef>👣 Current Step</th>
           <td mat-cell *matCellDef="let v">
@@ -177,21 +183,21 @@
           </td>
         </ng-container>
 
-        <!-- Action -->
+        <!-- Action Button -->
         <ng-container matColumnDef="action">
           <th mat-header-cell *matHeaderCellDef>⚡ Action</th>
           <td mat-cell *matCellDef="let v" class="action-cell">
-            <button 
-              mat-raised-button 
-              color="primary" 
-              (click)="openCase(v); $event.stopPropagation()"
-              class="action-button">
+            <button
+              mat-raised-button
+              color="primary"
+              class="action-button"
+              (click)="openCase(v); $event.stopPropagation()">
               🔓 OPEN
             </button>
           </td>
         </ng-container>
 
-        <!-- Header and Rows -->
+        <!-- Table Rows -->
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let v; columns: displayedColumns;"></tr>
 

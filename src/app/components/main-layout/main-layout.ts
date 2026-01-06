@@ -12,16 +12,6 @@ import { FooterComponent } from '../footer/footer';
   template: `
     <app-header></app-header>
 
-    <section class="hero">
-      <div class="hero-content">
-        <h1>
-          <span style="color: green;">Pronto</span>
-          <span style="color: red;">Moto</span>
-        </h1>
-        <p>Your one-stop valuations dashboard</p>
-      </div>
-    </section>
-
     <router-outlet></router-outlet>
 
     <app-footer></app-footer>

@@ -1,24 +1,28 @@
+<!-- header.html -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
 
-    <!-- Brand -->
-    <a class="navbar-brand d-flex align-items-center" routerLink="/">
+    <!-- Logo/Brand -->
+    <a class="navbar-brand d-flex align-items-center" routerLink="/" title="Go to Dashboard">
       <img
         src="https://prontomoto.azureedge.net/artifacts/prontomoto_icon.png"
-        alt="Icon"
+        alt="ProntoMoto Icon"
         width="42"
         height="42"
         class="me-2"
       />
       <span class="navbar-title">
-        <span style="color: green;">Pronto</span> <span style="color: red;">Moto</span>
+        <span style="color: #4CAF50; font-weight: 600;">Pronto</span>
+        <span style="color: #FF5252; font-weight: 600;">Moto</span>
       </span>
     </a>
 
-    <!-- User name before menu -->
-    <span class="navbar-text ms-3 me-auto" *ngIf="userName$ | async as uname"> Hello {{ uname }}</span>
+    <!-- User Welcome Text (Hidden on Mobile) -->
+    <span class="navbar-text ms-3 me-auto d-none d-lg-inline" *ngIf="userName$ | async as uname">
+      👤 Hello, <strong>{{ uname }}</strong>
+    </span>
 
-    <!-- Toggler -->
+    <!-- Navbar Toggler for Mobile -->
     <button
       class="navbar-toggler"
       type="button"
@@ -30,35 +34,82 @@
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- Nav items -->
+    <!-- Navigation Items Container -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center" style="gap: 0;">
 
+        <!-- Dashboard Link -->
         <li class="nav-item">
-          <a class="nav-link" routerLink="/" routerLinkActive="active">Dashboard</a>
-        </li>
-
-        <!-- Stakeholder only for CanEditStakeholder -->
-        <li class="nav-item" *ngIf="canEditStakeholder$ | async">
-          <a class="nav-link" routerLink="/stakeholder" routerLinkActive="active">Stakeholder</a>
-        </li>
-
-        <!-- Users menu only for Admin -->
-        <li class="nav-item dropdown" *ngIf="isAdmin$ | async">
-          <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            Users
+          <a 
+            class="nav-link nav-link-custom" 
+            routerLink="/" 
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            title="View Dashboard">
+            📊 Dashboard
           </a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" routerLink="/users" routerLinkActive="active">Users</a></li>
-            <li><a class="dropdown-item" routerLink="/users/add" routerLinkActive="active">Add User</a></li>
+        </li>
+
+        <!-- Stakeholder Link (Conditional) -->
+        <li class="nav-item" *ngIf="canEditStakeholder$ | async">
+          <a 
+            class="nav-link nav-link-custom" 
+            routerLink="/stakeholder" 
+            routerLinkActive="active"
+            title="View Stakeholders">
+            👥 Stakeholder
+          </a>
+        </li>
+
+        <!-- Users Dropdown (Admin Only) -->
+        <li class="nav-item dropdown" *ngIf="isAdmin$ | async">
+          <a 
+            class="nav-link dropdown-toggle nav-link-custom" 
+            role="button"
+            data-bs-toggle="dropdown" 
+            aria-expanded="false"
+            title="Users Management">
+            👤 Users
+            <span class="dropdown-arrow-icon">▼</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-dark" style="min-width: 200px;">
+            <li>
+              <a 
+                class="dropdown-item dropdown-item-custom" 
+                routerLink="/users" 
+                routerLinkActive="active"
+                title="View and manage all users">
+                📋 Manage Users
+              </a>
+            </li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li>
+              <a 
+                class="dropdown-item dropdown-item-custom" 
+                routerLink="/users/add" 
+                routerLinkActive="active"
+                title="Add a new user">
+                ➕ Add User
+              </a>
+            </li>
           </ul>
         </li>
 
+        <!-- Logout Link -->
         <li class="nav-item">
-          <a class="nav-link" (click)="onLogout()" routerLinkActive="active">Logout</a>
+          <a 
+            class="nav-link nav-link-custom" 
+            (click)="onLogout()" 
+            role="button"
+            title="Logout from application">
+            🚪 Logout
+          </a>
         </li>
 
       </ul>
     </div>
+
   </div>
 </nav>
