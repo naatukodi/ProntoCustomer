@@ -61,7 +61,7 @@ export class DashboardComponent implements OnInit {
   ];
 
   // Status filter only
-  statuses = ['Open', 'InProgress', 'Inspection Completed', 'Rejected'];
+  statuses = [ 'InProgress', 'Inspection Completed', 'Rejected'];
   selectedStatus: string = '';
 
   private readonly noAssignmentExemptRoles = ['Admin', 'StateAdmin', 'SuperAdmin'];
@@ -133,8 +133,13 @@ export class DashboardComponent implements OnInit {
   // --- NEW HELPER METHOD FOR COUNTS ---
   getCount(status: string): number {
     if (!this.claims) return 0;
-    // Normalize string case if necessary, depending on your backend data
-    // The status from your 'statuses' array matches the backend value usually
+
+    // Custom logic for "Inspection Completed" -> Check if step is QC (Index 3)
+    if (status === 'Inspection Completed') {
+      return this.claims.filter(v => this.getStepIndex(v) === 4).length;
+    }
+
+    // Default logic for Open, InProgress, Rejected
     return this.claims.filter(v => v.status === status).length;
   }
 
@@ -171,8 +176,21 @@ export class DashboardComponent implements OnInit {
   // =========== FILTERS ===========
   applyFilter(): void {
     this.filteredClaims = this.claims.filter((v) => {
+      // 1. Check Date
       const matchesDate = !this.filterDate || new Date(v.createdAt).setHours(0, 0, 0, 0) === this.filterDate.setHours(0, 0, 0, 0);
-      const matchesStatus = !this.selectedStatus || v.status === this.selectedStatus;
+
+      // 2. Check Status
+      let matchesStatus = true;
+      if (this.selectedStatus) {
+        if (this.selectedStatus === 'Inspection Completed') {
+          // If "Inspection Completed" is selected, match items in QC step (Index 3)
+          matchesStatus = this.getStepIndex(v) === 4;
+        } else {
+          // Otherwise match the status string exactly (Open, InProgress, Rejected)
+          matchesStatus = v.status === this.selectedStatus;
+        }
+      }
+
       return matchesDate && matchesStatus;
     });
   }
